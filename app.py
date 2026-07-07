@@ -400,17 +400,25 @@ elif st.session_state.page == "finish":
     st.title("🎉 Study Completed!")
     st.success("Thank you for participating in this research experiment.")
     
+    # Calculate raw scores safely
+    pre_score = int(st.session_state.get("pre_score_data", 0))
+    sys1_score = int(st.session_state.get("sys1_post_data", 0))
+    sys2_score = int(st.session_state.get("sys2_post_data", 0))
+    
+    # Assuming each test has 5 questions total (change if your tests have more/less)
+    total_questions = 5 
+    
     st.write("### 📋 Logged Participant Session Data:")
     summary_df = pd.DataFrame([{
         "Participant_ID": st.session_state.get("pid_data", st.session_state.participant_id),
         "Expertise_Group": st.session_state.get("expertise_group_data", ""),
-        "Pre_Test_Score": st.session_state.get("pre_score_data", ""),
+        "Pre_Test_Score": f"{pre_score}/{total_questions}",
+        "Sys1_Post_Score": f"{sys1_score}/{total_questions}",
+        "Sys1_Accuracy": f"{(sys1_score / total_questions) * 100:.1f}%",
         "Sys1_Learning_Time": st.session_state.get("sys1_time_data", ""),
-        "Sys1_Practice_Score": st.session_state.get("sys1_practice_data", ""),
-        "Sys1_Post_Test_Score": st.session_state.get("sys1_post_data", ""),
+        "Sys2_Post_Score": f"{sys2_score}/{total_questions}",
+        "Sys2_Accuracy": f"{(sys2_score / total_questions) * 100:.1f}%",
         "Sys2_Learning_Time": st.session_state.get("sys2_time_data", ""),
-        "Sys2_Practice_Score": st.session_state.get("sys2_practice_data", ""),
-        "Sys2_Post_Test_Score": st.session_state.get("sys2_post_data", ""),
         "Questionnaire_Answers": st.session_state.get("survey_data", "")
     }])
     st.dataframe(summary_df)
