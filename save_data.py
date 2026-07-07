@@ -2,6 +2,9 @@ import streamlit as st
 from streamlit_gsheets import GSheetsConnection
 import pandas as pd
 from datetime import datetime
+def init_db():
+    # This keeps app.py happy without needing to alter its imports
+    pass
 
 def get_sheet_connection():
     return st.connection("gsheets", type=GSheetsConnection)
