@@ -2,66 +2,91 @@ import streamlit as st
 from streamlit_gsheets import GSheetsConnection
 import pandas as pd
 from datetime import datetime
+
+# Columns exactly matching your Google Sheet screenshot
+COLUMNS_LIST = [
+    "Participant_ID", "Timestamp", "Expertise_Group", "Pre_Test_Score", 
+    "Sys1_Learning_Time", "Sys1_Practice_Score", "Sys1_Post_Test_Score", 
+    "Sys2_Learning_Time", "Sys2_Practice_Score", "Sys2_Post_Test_Score", 
+    "Questionnaire_Answers"
+]
+
 def init_db():
-    # This keeps app.py happy without needing to alter its imports
+    """Keeps app.py happy on initialization."""
     pass
 
-def get_sheet_connection():
-    return st.connection("gsheets", type=GSheetsConnection)
-
-def save_participant_data(participant_id, expertise_group=None, pre_score=None, 
-                          sys1_time=None, sys1_practice=None, sys1_post=None, 
-                          sys2_time=None, sys2_practice=None, sys2_post=None, 
-                          survey_answers=None):
-    conn = get_sheet_connection()
-    
-    # Exact columns from your screenshot
-    columns_list = [
-        "Participant_ID", "Timestamp", "Expertise_Group", "Pre_Test_Score", 
-        "Sys1_Learning_Time", "Sys1_Practice_Score", "Sys1_Post_Test_Score", 
-        "Sys2_Learning_Time", "Sys2_Practice_Score", "Sys2_Post_Test_Score", 
-        "Questionnaire_Answers"
-    ]
-    
-    # 1. Read existing spreadsheet data
+def get_dataframe(conn):
+    """Helper function to read the sheet safely."""
     try:
         df = conn.read(ttl=0)
         df = df.astype(object)
+        # Ensure all columns exist
+        for col in COLUMNS_LIST:
+            if col not in df.columns:
+                df[col] = ""
+        return df
     except Exception:
-        df = pd.DataFrame(columns=columns_list)
+        return pd.DataFrame(columns=COLUMNS_LIST)
 
+# 1. Stage 3: Participant ID Screen
+def add_participant(participant_id):
+    conn = st.connection("gsheets", type=GSheetsConnection)
+    df = get_dataframe(conn)
+    
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    if participant_id not in df["Participant_ID"].values:
+        new_row = pd.DataFrame([{col: "" for col in COLUMNS_LIST}]).astype(object)
+        new_row.at[0, "Participant_ID"] = participant_id
+        new_row.at[0, "Timestamp"] = current_time
+        df = pd.concat([df, new_row], ignore_index=True)
+        conn.update(data=df)
 
-    # 2. Update if participant already exists
+# 2. Stage 4: Pre-Test Completion Screen
+def update_pretest(participant_id, pre_score, group):
+    conn = st.connection("gsheets", type=GSheetsConnection)
+    df = get_dataframe(conn)
+    
     if participant_id in df["Participant_ID"].values:
         idx = df[df["Participant_ID"] == participant_id].index[0]
-        
-        df.at[idx, "Timestamp"] = current_time
-        if expertise_group is not None: df.at[idx, "Expertise_Group"] = expertise_group
-        if pre_score is not None: df.at[idx, "Pre_Test_Score"] = pre_score
-        if sys1_time is not None: df.at[idx, "Sys1_Learning_Time"] = sys1_time
-        if sys1_practice is not None: df.at[idx, "Sys1_Practice_Score"] = sys1_practice
-        if sys1_post is not None: df.at[idx, "Sys1_Post_Test_Score"] = sys1_post
-        if sys2_time is not None: df.at[idx, "Sys2_Learning_Time"] = sys2_time
-        if sys2_practice is not None: df.at[idx, "Sys2_Practice_Score"] = sys2_practice
-        if sys2_post is not None: df.at[idx, "Sys2_Post_Test_Score"] = sys2_post
-        if survey_answers is not None: df.at[idx, "Questionnaire_Answers"] = str(survey_answers)
-    else:
-        # 3. Create a brand new row if it's a new participant
-        new_row = pd.DataFrame([{
-            "Participant_ID": participant_id,
-            "Timestamp": current_time,
-            "Expertise_Group": expertise_group if expertise_group is not None else "",
-            "Pre_Test_Score": pre_score if pre_score is not None else "",
-            "Sys1_Learning_Time": sys1_time if sys1_time is not None else "",
-            "Sys1_Practice_Score": sys1_practice if sys1_practice is not None else "",
-            "Sys1_Post_Test_Score": sys1_post if sys1_post is not None else "",
-            "Sys2_Learning_Time": sys2_time if sys2_time is not None else "",
-            "Sys2_Practice_Score": sys2_practice if sys2_practice is not None else "",
-            "Sys2_Post_Test_Score": sys2_post if sys2_post is not None else "",
-            "Questionnaire_Answers": str(survey_answers) if survey_answers is not None else ""
-        }]).astype(object)
-        df = pd.concat([df, new_row], ignore_index=True)
+        df.at[idx, "Pre_Test_Score"] = pre_score
+        df.at[idx, "Expertise_Group"] = group
+        df.at[idx, "Timestamp"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        conn.update(data=df)
+
+# 3. Stage 7: System 1 (Non-Adaptive) Post-Test Screen
+def update_nonadaptive(participant_id, learning_time, practice_score, post_score):
+    conn = st.connection("gsheets", type=GSheetsConnection)
+    df = get_dataframe(conn)
     
-    # 4. Push data straight to your Google Sheet
-    conn.update(data=df)
+    if participant_id in df["Participant_ID"].values:
+        idx = df[df["Participant_ID"] == participant_id].index[0]
+        df.at[idx, "Sys1_Learning_Time"] = learning_time
+        df.at[idx, "Sys1_Practice_Score"] = practice_score
+        df.at[idx, "Sys1_Post_Test_Score"] = post_score
+        df.at[idx, "Timestamp"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        conn.update(data=df)
+
+# 4. Stage 10: System 2 (Adaptive) Post-Test Screen
+def update_adaptive(participant_id, learning_time, practice_score, post_score):
+    conn = st.connection("gsheets", type=GSheetsConnection)
+    df = get_dataframe(conn)
+    
+    if participant_id in df["Participant_ID"].values:
+        idx = df[df["Participant_ID"] == participant_id].index[0]
+        df.at[idx, "Sys2_Learning_Time"] = learning_time
+        df.at[idx, "Sys2_Practice_Score"] = practice_score
+        df.at[idx, "Sys2_Post_Test_Score"] = post_score
+        df.at[idx, "Timestamp"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        conn.update(data=df)
+
+# 5. Stage 11: Final Survey Questionnaire Screen
+def save_questionnaire(participant_id, questionnaire_answers):
+    conn = st.connection("gsheets", type=GSheetsConnection)
+    df = get_dataframe(conn)
+    
+    if participant_id in df["Participant_ID"].values:
+        idx = df[df["Participant_ID"] == participant_id].index[0]
+        df.at[idx, "Questionnaire_Answers"] = str(questionnaire_answers)
+        df.at[idx, "Timestamp"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        conn.update(data=df)
