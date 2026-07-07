@@ -167,7 +167,6 @@ elif st.session_state.page == "non_adaptive_learning":
     idx = st.session_state.lesson_index
     total_lessons = len(lessons)
     lesson_data = lessons[idx]
-    task_data = practice_tasks[idx]
     
     st.markdown(f"<h2>📘 System 1: Standard AI — Lesson {idx + 1}/{total_lessons} ({lesson_data['title']})</h2>", unsafe_allow_html=True)
     st.caption("Standard Core Engine Profile: Delivers exact database reference outlines uniformly.")
@@ -206,33 +205,21 @@ elif st.session_state.page == "non_adaptive_learning":
                     st.error("⚠️ AI server is temporarily busy. Please resubmit your inquiry in a moment.")
 
     st.markdown("<hr>", unsafe_allow_html=True)
-    st.markdown("### 📝 Lesson Assignment Task:")
-    chosen_task = st.radio(task_data["question"], task_data["options"], index=None, key=f"task_s1_{idx}")
     
-    if st.button("Log Answer & Continue ➜"):
-        if chosen_task is not None:
-            if chosen_task == task_data["answer"]:
-                st.session_state.practice_score += 1
-                st.success(task_data["feedback_correct"])
-            else:
-                st.error(task_data["feedback_incorrect"])
-                
-            time.sleep(1.5)
-            if idx < total_lessons - 1:
-                st.session_state.lesson_index += 1
-                st.session_state.chat_history = []
-                st.rerun()
-            else:
-                elapsed = round(time.time() - st.session_state.start_time, 2)
-                st.session_state.sys1_elapsed = elapsed
-                st.session_state.sys1_practice = st.session_state.practice_score
-                st.session_state.page = "post_test_non_adaptive"
-                st.session_state.question_index = 0
-                st.session_state.score = 0
-                st.rerun()
+    # Simple navigation directly to the next lesson or the post-test
+    button_label = "Next Lesson ➜" if idx < total_lessons - 1 else "Proceed to System 1 Post-Test ➜"
+    if st.button(button_label, type="primary"):
+        if idx < total_lessons - 1:
+            st.session_state.lesson_index += 1
+            st.session_state.chat_history = []
+            st.rerun()
         else:
-            st.warning("Please choose an answer before progressing.")
-
+            elapsed = round(time.time() - st.session_state.start_time, 2)
+            st.session_state.sys1_elapsed = elapsed
+            st.session_state.page = "post_test_non_adaptive"
+            st.session_state.question_index = 0
+            st.session_state.score = 0
+            st.rerun()
 # ==========================================
 # STAGE 7: POST-TEST - NON-ADAPTIVE AI
 # ==========================================
@@ -290,7 +277,6 @@ elif st.session_state.page == "adaptive_learning":
     idx = st.session_state.lesson_index
     total_lessons = len(lessons)
     lesson_data = lessons[idx]
-    task_data = practice_tasks[idx]
     group = st.session_state.expertise
     
     st.markdown(f"<h2>🟢 System 2: Adaptive AI — Lesson {idx + 1}/{total_lessons} ({lesson_data['title']})</h2>", unsafe_allow_html=True)
@@ -333,33 +319,21 @@ elif st.session_state.page == "adaptive_learning":
                     st.error("⚠️ AI server is temporarily busy. Please resubmit your inquiry in a moment.")
 
     st.markdown("<hr>", unsafe_allow_html=True)
-    st.markdown("### 📝 Lesson Assignment Task:")
-    chosen_task = st.radio(task_data["question"], task_data["options"], index=None, key=f"task_s2_{idx}")
     
-    if st.button("Log Answer & Continue ➜"):
-        if chosen_task is not None:
-            if chosen_task == task_data["answer"]:
-                st.session_state.practice_score += 1
-                st.success(task_data["feedback_correct"])
-            else:
-                st.error(task_data["feedback_incorrect"])
-                
-            time.sleep(1.5)
-            if idx < total_lessons - 1:
-                st.session_state.lesson_index += 1
-                st.session_state.chat_history = []
-                st.rerun()
-            else:
-                elapsed = round(time.time() - st.session_state.start_time, 2)
-                st.session_state.sys2_elapsed = elapsed
-                st.session_state.sys2_practice = st.session_state.practice_score
-                st.session_state.page = "post_test_adaptive"
-                st.session_state.question_index = 0
-                st.session_state.score = 0
-                st.rerun()
+    # Simple navigation directly to the next lesson or the post-test
+    button_label = "Next Lesson ➜" if idx < total_lessons - 1 else "Proceed to System 2 Post-Test ➜"
+    if st.button(button_label, type="primary"):
+        if idx < total_lessons - 1:
+            st.session_state.lesson_index += 1
+            st.session_state.chat_history = []
+            st.rerun()
         else:
-            st.warning("Please choose an answer before progressing.")
-
+            elapsed = round(time.time() - st.session_state.start_time, 2)
+            st.session_state.sys2_elapsed = elapsed
+            st.session_state.page = "post_test_adaptive"
+            st.session_state.question_index = 0
+            st.session_state.score = 0
+            st.rerun()
 # ==========================================
 # STAGE 10: POST-TEST - ADAPTIVE AI
 # ==========================================

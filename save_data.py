@@ -13,16 +13,16 @@ def update_pretest(participant_id, pre_score, group):
     st.session_state["expertise_group_data"] = group
     st.session_state["pre_score_data"] = pre_score
 
-def update_nonadaptive(participant_id, learning_time, practice_score, post_score):
-    # Store System 1 results safely in session memory
+def update_nonadaptive(participant_id, learning_time, post_score, practice_score=None):
+    # Store learning metrics, setting practice score empty since we removed tasks
     st.session_state["sys1_time_data"] = learning_time
-    st.session_state["sys1_practice_data"] = practice_score
+    st.session_state["sys1_practice_data"] = "" 
     st.session_state["sys1_post_data"] = post_score
 
-def update_adaptive(participant_id, learning_time, practice_score, post_score):
-    # Store System 2 results safely in session memory
+def update_adaptive(participant_id, learning_time, post_score, practice_score=None):
+    # Store learning metrics, setting practice score empty since we removed tasks
     st.session_state["sys2_time_data"] = learning_time
-    st.session_state["sys2_practice_data"] = practice_score
+    st.session_state["sys2_practice_data"] = "" 
     st.session_state["sys2_post_data"] = post_score
 
 def save_questionnaire(participant_id, questionnaire_answers):
