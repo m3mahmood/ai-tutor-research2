@@ -10,7 +10,7 @@ from google.genai.errors import ServerError, APIError
 # --- IMPORTING YOUR STRUCTURAL MODULES ---
 from questions import pre_test, post_test_nonadaptive, post_test_adaptive
 from lessons import lessons
-from tasks import practice_tasks
+# tasks module is no longer required as practice tasks are removed
 from questionnaire import questionnaire, likert_scale
 from save_data import (
     init_db,
@@ -28,7 +28,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# Initialize the participants.xlsx file layout automatically
+# Initialize data configuration hooks
 init_db()
 
 try:
@@ -56,8 +56,6 @@ if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 if "lesson_index" not in st.session_state:
     st.session_state.lesson_index = 0
-if "practice_score" not in st.session_state:
-    st.session_state.practice_score = 0
 if "start_time" not in st.session_state:
     st.session_state.start_time = 0.0
 if "questionnaire_answers" not in st.session_state:
@@ -96,7 +94,6 @@ elif st.session_state.page == "participant_id":
     pid = st.text_input("Enter a unique Participant ID:")
     if st.button("Submit Profile ➜") and pid:
         st.session_state.participant_id = pid
-        # Write participant row to excel database
         add_participant(pid)
         st.session_state.page = "pre_test"
         st.session_state.question_index = 0
@@ -127,11 +124,9 @@ elif st.session_state.page == "pre_test":
                 st.rerun()
             else:
                 pre_score = st.session_state.score
-                # Classification threshold out of 5 questions
                 group = "Expert" if pre_score >= 3 else "Novice"
                 st.session_state.expertise = group
                 
-                # Write pre-test score to database
                 update_pretest(st.session_state.participant_id, pre_score, group)
                 
                 st.session_state.page = "show_group"
@@ -155,7 +150,6 @@ elif st.session_state.page == "show_group":
     if st.button("Proceed to System 1 ➜"):
         st.session_state.page = "non_adaptive_learning"
         st.session_state.lesson_index = 0
-        st.session_state.practice_score = 0
         st.session_state.chat_history = []
         st.session_state.start_time = time.time()
         st.rerun()
@@ -206,7 +200,6 @@ elif st.session_state.page == "non_adaptive_learning":
 
     st.markdown("<hr>", unsafe_allow_html=True)
     
-    # Simple navigation directly to the next lesson or the post-test
     button_label = "Next Lesson ➜" if idx < total_lessons - 1 else "Proceed to System 1 Post-Test ➜"
     if st.button(button_label, type="primary"):
         if idx < total_lessons - 1:
@@ -220,6 +213,7 @@ elif st.session_state.page == "non_adaptive_learning":
             st.session_state.question_index = 0
             st.session_state.score = 0
             st.rerun()
+
 # ==========================================
 # STAGE 7: POST-TEST - NON-ADAPTIVE AI
 # ==========================================
@@ -246,7 +240,6 @@ elif st.session_state.page == "post_test_non_adaptive":
                 update_nonadaptive(
                     st.session_state.participant_id,
                     learning_time=st.session_state.sys1_elapsed,
-                    practice_score=st.session_state.sys1_practice,
                     post_score=st.session_state.score
                 )
                 st.session_state.page = "transition_to_sys2"
@@ -265,7 +258,6 @@ elif st.session_state.page == "transition_to_sys2":
     if st.button("Begin System 2 ➜", type="primary"):
         st.session_state.page = "adaptive_learning"
         st.session_state.lesson_index = 0
-        st.session_state.practice_score = 0
         st.session_state.chat_history = []
         st.session_state.start_time = time.time()
         st.rerun()
@@ -320,7 +312,6 @@ elif st.session_state.page == "adaptive_learning":
 
     st.markdown("<hr>", unsafe_allow_html=True)
     
-    # Simple navigation directly to the next lesson or the post-test
     button_label = "Next Lesson ➜" if idx < total_lessons - 1 else "Proceed to System 2 Post-Test ➜"
     if st.button(button_label, type="primary"):
         if idx < total_lessons - 1:
@@ -334,6 +325,7 @@ elif st.session_state.page == "adaptive_learning":
             st.session_state.question_index = 0
             st.session_state.score = 0
             st.rerun()
+
 # ==========================================
 # STAGE 10: POST-TEST - ADAPTIVE AI
 # ==========================================
@@ -360,7 +352,6 @@ elif st.session_state.page == "post_test_adaptive":
                 update_adaptive(
                     st.session_state.participant_id,
                     learning_time=st.session_state.sys2_elapsed,
-                    practice_score=st.session_state.sys2_practice,
                     post_score=st.session_state.score
                 )
                 st.session_state.page = "questionnaire"
@@ -409,7 +400,6 @@ elif st.session_state.page == "finish":
     st.title("🎉 Study Completed!")
     st.success("Thank you for participating in this research experiment.")
     
-    # Display the tracked data metrics clearly on screen for you
     st.write("### 📋 Logged Participant Session Data:")
     summary_df = pd.DataFrame([{
         "Participant_ID": st.session_state.get("pid_data", st.session_state.participant_id),
