@@ -400,14 +400,40 @@ elif st.session_state.page == "finish":
     st.title("🎉 Study Completed!")
     st.success("Thank you for participating in this research experiment.")
     
-    # Calculate raw scores safely
+    # 1. Calculate Accuracy Metrics Safely
     pre_score = int(st.session_state.get("pre_score_data", 0))
     sys1_score = int(st.session_state.get("sys1_post_data", 0))
     sys2_score = int(st.session_state.get("sys2_post_data", 0))
-    
-    # Assuming each test has 5 questions total (change if your tests have more/less)
     total_questions = 5 
     
+    # 2. Process Questionnaire Data
+    answers = st.session_state.get("questionnaire_answers", [])
+    
+    # Map Likert scale text choices perfectly to numbers 1-5
+    likert_map = {
+        "Strongly Disagree": 1,
+        "Disagree": 2,
+        "Neutral": 3,
+        "Agree": 4,
+        "Strongly Agree": 5
+    }
+    
+    # Convert text responses to numbers
+    scores = [likert_map.get(ans, 3) for ans in answers] # defaults to 3 if a question is blank
+    
+    # Calculate explicit research dimension averages based on your 7 items
+    if len(scores) >= 7:
+        # Usability & Engagement: Avg of Q1 ("easy to use") and Q4 ("felt engaged")
+        usability_score = round((scores[0] + scores[3]) / 2, 2)
+        
+        # Perceived Effectiveness: Avg of Q2 ("helped understand"), Q3 ("feedback helped"), and Q5 ("improved understanding")
+        effectiveness_score = round((scores[1] + scores[2] + scores[4]) / 3, 2)
+        
+        # Adaptive Preference: Avg of Q6 ("Adaptive was more helpful") and Q7 ("prefer Adaptive for future")
+        adaptive_preference = round((scores[5] + scores[6]) / 2, 2)
+    else:
+        usability_score = effectiveness_score = adaptive_preference = "N/A"
+
     st.write("### 📋 Logged Participant Session Data:")
     summary_df = pd.DataFrame([{
         "Participant_ID": st.session_state.get("pid_data", st.session_state.participant_id),
@@ -419,7 +445,9 @@ elif st.session_state.page == "finish":
         "Sys2_Post_Score": f"{sys2_score}/{total_questions}",
         "Sys2_Accuracy": f"{(sys2_score / total_questions) * 100:.1f}%",
         "Sys2_Learning_Time": st.session_state.get("sys2_time_data", ""),
-        "Questionnaire_Answers": st.session_state.get("survey_data", "")
+        "Usability_Engagement_Avg": usability_score,
+        "Learning_Effectiveness_Avg": effectiveness_score,
+        "Adaptive_Preference_Avg": adaptive_preference
     }])
     st.dataframe(summary_df)
     st.info("You can hover over the table above and click the download icon to save it as a CSV anytime!")
