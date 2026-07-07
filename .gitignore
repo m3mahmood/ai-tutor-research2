@@ -1,0 +1,10 @@
+# Python environment caches
+__pycache__/
+*.pyc
+
+# Local data spreadsheets (Keep your research data private!)
+participants.xlsx
+experimental_results.xlsx
+
+# Streamlit local secrets (Contains your Gemini API key)
+.streamlit/secrets.toml

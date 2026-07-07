@@ -1,0 +1,440 @@
+/* =====================================================
+   AI Assistance Research App
+   Modern Professional Theme
+===================================================== */
+
+/* --------------------------
+   IMPORT FONT
+-------------------------- */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+/* --------------------------
+   GLOBAL
+-------------------------- */
+
+html, body, [class*="css"]{
+    font-family: 'Poppins', sans-serif;
+}
+
+.stApp{
+    background: #F4F7FC;
+}
+
+/* Center application */
+
+.main .block-container{
+    max-width: 900px;
+    padding-top: 2rem;
+    padding-bottom: 3rem;
+}
+
+/* Hide Streamlit branding */
+
+#MainMenu{
+    visibility:hidden;
+}
+
+footer{
+    visibility:hidden;
+}
+
+header{
+    visibility:hidden;
+}
+
+/* --------------------------
+   HEADINGS
+-------------------------- */
+
+h1{
+    color:#1E3A8A;
+    font-weight:700;
+    text-align:center;
+    margin-bottom:10px;
+}
+
+h2{
+    color:#2563EB;
+    font-weight:600;
+}
+
+h3{
+    color:#2563EB;
+    font-weight:600;
+}
+
+h4{
+    color:#475569;
+}
+
+/* --------------------------
+   PARAGRAPHS
+-------------------------- */
+
+p{
+    color:#334155;
+    font-size:16px;
+    line-height:1.7;
+}
+
+/* --------------------------
+   BUTTONS
+-------------------------- */
+
+.stButton>button{
+
+    width:100%;
+
+    background:#2563EB;
+
+    color:white;
+
+    border:none;
+
+    border-radius:12px;
+
+    padding:14px;
+
+    font-size:17px;
+
+    font-weight:600;
+
+    transition:.3s;
+
+    box-shadow:0 8px 20px rgba(37,99,235,.25);
+
+}
+
+.stButton>button:hover{
+
+    background:#1D4ED8;
+
+    transform:translateY(-2px);
+
+}
+
+.stButton>button:active{
+
+    transform:scale(.98);
+
+}
+
+/* --------------------------
+   TEXT INPUT
+-------------------------- */
+
+.stTextInput input{
+
+    border-radius:10px;
+
+    border:2px solid #CBD5E1;
+
+    padding:12px;
+
+    font-size:16px;
+
+}
+
+.stTextInput input:focus{
+
+    border-color:#2563EB;
+
+}
+
+/* --------------------------
+   RADIO BUTTONS
+-------------------------- */
+
+div[role="radiogroup"]{
+
+    background:white;
+
+    border-radius:15px;
+
+    padding:18px;
+
+    box-shadow:0 6px 20px rgba(0,0,0,.05);
+
+}
+
+/* --------------------------
+   CHECKBOX
+-------------------------- */
+
+.stCheckbox{
+
+    padding-top:10px;
+
+    padding-bottom:10px;
+
+}
+
+/* --------------------------
+   PROGRESS BAR
+-------------------------- */
+
+.stProgress{
+
+    margin-top:15px;
+
+    margin-bottom:20px;
+
+}
+
+.stProgress > div > div > div{
+
+    background:#2563EB;
+
+}
+
+/* --------------------------
+   ALERTS
+-------------------------- */
+
+div[data-testid="stAlert"]{
+
+    border-radius:15px;
+
+    border:none;
+
+}
+
+/* --------------------------
+   METRIC
+-------------------------- */
+
+div[data-testid="metric-container"]{
+
+    background:white;
+
+    border-radius:15px;
+
+    padding:20px;
+
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+
+}
+
+/* --------------------------
+   LESSON CARD
+-------------------------- */
+
+.lesson-card{
+
+    background:white;
+
+    padding:30px;
+
+    border-radius:20px;
+
+    box-shadow:0 10px 30px rgba(0,0,0,.08);
+
+    margin-top:20px;
+
+    margin-bottom:20px;
+
+}
+
+/* --------------------------
+   QUESTION CARD
+-------------------------- */
+
+.question-card{
+
+    background:white;
+
+    padding:25px;
+
+    border-radius:18px;
+
+    box-shadow:0 8px 25px rgba(0,0,0,.08);
+
+    margin-bottom:20px;
+
+}
+
+/* --------------------------
+   AI MESSAGE
+-------------------------- */
+
+.ai-box{
+
+    background:#EFF6FF;
+
+    border-left:6px solid #2563EB;
+
+    border-radius:15px;
+
+    padding:20px;
+
+    margin-top:20px;
+
+    margin-bottom:20px;
+
+    color:#1E293B;
+
+}
+
+/* --------------------------
+   SUCCESS BOX
+-------------------------- */
+
+.success-box{
+
+    background:#ECFDF5;
+
+    border-left:6px solid #10B981;
+
+    border-radius:15px;
+
+    padding:20px;
+
+}
+
+/* --------------------------
+   INFO BOX
+-------------------------- */
+
+.info-box{
+
+    background:#EEF2FF;
+
+    border-left:6px solid #6366F1;
+
+    border-radius:15px;
+
+    padding:20px;
+
+}
+
+/* --------------------------
+   WARNING BOX
+-------------------------- */
+
+.warning-box{
+
+    background:#FFF7ED;
+
+    border-left:6px solid #F97316;
+
+    border-radius:15px;
+
+    padding:20px;
+
+}
+
+/* --------------------------
+   QUESTION NUMBER
+-------------------------- */
+
+.question-number{
+
+    color:#2563EB;
+
+    font-size:20px;
+
+    font-weight:700;
+
+}
+
+/* --------------------------
+   DIVIDER
+-------------------------- */
+
+hr{
+
+    border:none;
+
+    border-top:1px solid #E2E8F0;
+
+    margin-top:30px;
+
+    margin-bottom:30px;
+
+}
+
+/* --------------------------
+   SIDEBAR
+-------------------------- */
+
+section[data-testid="stSidebar"]{
+
+    background:#1E3A8A;
+
+}
+
+section[data-testid="stSidebar"] *{
+
+    color:white;
+
+}
+
+/* --------------------------
+   SCROLLBAR
+-------------------------- */
+
+::-webkit-scrollbar{
+
+    width:10px;
+
+}
+
+::-webkit-scrollbar-track{
+
+    background:#E2E8F0;
+
+}
+
+::-webkit-scrollbar-thumb{
+
+    background:#2563EB;
+
+    border-radius:20px;
+
+}
+
+/* --------------------------
+   ANIMATIONS
+-------------------------- */
+
+@keyframes fadeIn{
+
+    from{
+
+        opacity:0;
+
+        transform:translateY(15px);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:translateY(0);
+
+    }
+
+}
+
+.block-container{
+
+    animation:fadeIn .5s ease;
+
+}
+
+/* --------------------------
+   FOOTER
+-------------------------- */
+
+.custom-footer{
+
+    text-align:center;
+
+    color:#64748B;
+
+    margin-top:40px;
+
+    font-size:14px;
+
+}
