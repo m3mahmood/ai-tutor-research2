@@ -434,4 +434,20 @@ elif st.session_state.page == "finish":
     st.balloons()
     st.title("🎉 Study Completed!")
     st.success("Thank you for participating in this research experiment.")
-    st.write("All performance metrics, timing attributes, and feedback survey matrices have been logged to `data/participants.xlsx`.")
+    
+    # Display the tracked data metrics clearly on screen for you
+    st.write("### 📋 Logged Participant Session Data:")
+    summary_df = pd.DataFrame([{
+        "Participant_ID": st.session_state.get("pid_data", st.session_state.participant_id),
+        "Expertise_Group": st.session_state.get("expertise_group_data", ""),
+        "Pre_Test_Score": st.session_state.get("pre_score_data", ""),
+        "Sys1_Learning_Time": st.session_state.get("sys1_time_data", ""),
+        "Sys1_Practice_Score": st.session_state.get("sys1_practice_data", ""),
+        "Sys1_Post_Test_Score": st.session_state.get("sys1_post_data", ""),
+        "Sys2_Learning_Time": st.session_state.get("sys2_time_data", ""),
+        "Sys2_Practice_Score": st.session_state.get("sys2_practice_data", ""),
+        "Sys2_Post_Test_Score": st.session_state.get("sys2_post_data", ""),
+        "Questionnaire_Answers": st.session_state.get("survey_data", "")
+    }])
+    st.dataframe(summary_df)
+    st.info("You can hover over the table above and click the download icon to save it as a CSV anytime!")
