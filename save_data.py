@@ -1,120 +1,64 @@
-import os
+import streamlit as st
+from streamlit_gsheets import GSheetsConnection
 import pandas as pd
 from datetime import datetime
 
-# File paths for your research data
-PARTICIPANTS_FILE = "participants.xlsx"
-INTERACTION_LOG_FILE = "experimental_results.xlsx"
+def get_sheet_connection():
+    return st.connection("gsheets", type=GSheetsConnection)
 
-def init_db():
-    """
-    Initializes the Excel database structure if it does not exist.
-    Creates a master tracking spreadsheet with strict string dtypes.
-    """
-    if not os.path.exists(PARTICIPANTS_FILE):
-        columns = [
-            "Participant_ID", "Timestamp", "Expertise_Group", "Pre_Test_Score",
-            "Sys1_Learning_Time", "Sys1_Practice_Score", "Sys1_Post_Test_Score",
-            "Sys2_Learning_Time", "Sys2_Practice_Score", "Sys2_Post_Test_Score",
-            "Questionnaire_Answers"
-        ]
-        df = pd.DataFrame(columns=columns)
-        df.to_excel(PARTICIPANTS_FILE, index=False)
+def save_participant_data(participant_id, expertise_group=None, pre_score=None, 
+                          sys1_time=None, sys1_practice=None, sys1_post=None, 
+                          sys2_time=None, sys2_practice=None, sys2_post=None, 
+                          survey_answers=None):
+    conn = get_sheet_connection()
+    
+    # Exact columns from your screenshot
+    columns_list = [
+        "Participant_ID", "Timestamp", "Expertise_Group", "Pre_Test_Score", 
+        "Sys1_Learning_Time", "Sys1_Practice_Score", "Sys1_Post_Test_Score", 
+        "Sys2_Learning_Time", "Sys2_Practice_Score", "Sys2_Post_Test_Score", 
+        "Questionnaire_Answers"
+    ]
+    
+    # 1. Read existing spreadsheet data
+    try:
+        df = conn.read(ttl=0)
+        df = df.astype(object)
+    except Exception:
+        df = pd.DataFrame(columns=columns_list)
 
-def add_participant(participant_id):
-    """Initializes a new row for a participant when they enter their ID."""
-    init_db()  # Safety check
-    
-    # Force read to see tracking fields as objects/strings
-    df = pd.read_excel(PARTICIPANTS_FILE)
-    
-    # Check if participant already exists to prevent duplicate rows
-    if str(participant_id) in df["Participant_ID"].astype(str).values:
-        return
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    # 2. Update if participant already exists
+    if participant_id in df["Participant_ID"].values:
+        idx = df[df["Participant_ID"] == participant_id].index[0]
         
-    # Use empty strings "" for text fields instead of None to force string dtype
-    new_row = {
-        "Participant_ID": str(participant_id),
-        "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "Expertise_Group": "",  # Force string/object type immediately
-        "Pre_Test_Score": None,
-        "Sys1_Learning_Time": None,
-        "Sys1_Practice_Score": None,
-        "Sys1_Post_Test_Score": None,
-        "Sys2_Learning_Time": None,
-        "Sys2_Practice_Score": None,
-        "Sys2_Post_Test_Score": None,
-        "Questionnaire_Answers": ""  # Force string/object type immediately
-    }
-    
-    df_new = pd.DataFrame([new_row])
-    df_combined = pd.concat([df, df_new], ignore_index=True)
-    df_combined.to_excel(PARTICIPANTS_FILE, index=False)
-
-def update_pretest(participant_id, score, group):
-    """Updates the pre-test results and initial classification."""
-    df = pd.read_excel(PARTICIPANTS_FILE, dtype={"Participant_ID": str, "Expertise_Group": str})
-    
-    # Force text columns to string format to override any auto float64 conversion
-    df["Participant_ID"] = df["Participant_ID"].astype(str)
-    df["Expertise_Group"] = df["Expertise_Group"].astype(str)
-    
-    # Convert incoming participant_id to string to guarantee a clean match
-    pid_str = str(participant_id)
-    
-    # Update row cleanly
-    df.loc[df["Participant_ID"] == pid_str, "Pre_Test_Score"] = score
-    df.loc[df["Participant_ID"] == pid_str, "Expertise_Group"] = str(group)
-    
-    df.to_excel(PARTICIPANTS_FILE, index=False)
-
-def update_nonadaptive(participant_id, learning_time, practice_score, post_score):
-    """Updates tracking metrics for System 1 (Non-Adaptive)."""
-    df = pd.read_excel(PARTICIPANTS_FILE, dtype={"Participant_ID": str})
-    pid_str = str(participant_id)
-    
-    df.loc[df["Participant_ID"] == pid_str, "Sys1_Learning_Time"] = learning_time
-    df.loc[df["Participant_ID"] == pid_str, "Sys1_Practice_Score"] = practice_score
-    df.loc[df["Participant_ID"] == pid_str, "Sys1_Post_Test_Score"] = post_score
-    df.to_excel(PARTICIPANTS_FILE, index=False)
-
-def update_adaptive(participant_id, learning_time, practice_score, post_score):
-    """Updates tracking metrics for System 2 (Adaptive)."""
-    df = pd.read_excel(PARTICIPANTS_FILE, dtype={"Participant_ID": str})
-    pid_str = str(participant_id)
-    
-    df.loc[df["Participant_ID"] == pid_str, "Sys2_Learning_Time"] = learning_time
-    df.loc[df["Participant_ID"] == pid_str, "Sys2_Practice_Score"] = practice_score
-    df.loc[df["Participant_ID"] == pid_str, "Sys2_Post_Test_Score"] = post_score
-    df.to_excel(PARTICIPANTS_FILE, index=False)
-
-def save_questionnaire(participant_id, answers):
-    """Saves the survey answers array as a string representation inside the row."""
-    df = pd.read_excel(PARTICIPANTS_FILE, dtype={"Participant_ID": str, "Questionnaire_Answers": str})
-    df["Questionnaire_Answers"] = df["Questionnaire_Answers"].astype(str)
-    pid_str = str(participant_id)
-    
-    df.loc[df["Participant_ID"] == pid_str, "Questionnaire_Answers"] = str(answers)
-    df.to_excel(PARTICIPANTS_FILE, index=False)
-
-def log_interaction(step, user_profile, user_message, ai_response):
-    """
-    Logs raw conversational interaction details into a separate ledger 
-    for deep linguistic or context analysis.
-    """
-    new_data = {
-        "Timestamp": [datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
-        "Experimental_Phase": [step],        
-        "User_Expertise_Profile": [user_profile],  
-        "User_Input": [user_message],
-        "AI_Response": [ai_response]
-    }
-    
-    df_new = pd.DataFrame(new_data)
-    
-    if not os.path.exists(INTERACTION_LOG_FILE):
-        df_new.to_excel(INTERACTION_LOG_FILE, index=False)
+        df.at[idx, "Timestamp"] = current_time
+        if expertise_group is not None: df.at[idx, "Expertise_Group"] = expertise_group
+        if pre_score is not None: df.at[idx, "Pre_Test_Score"] = pre_score
+        if sys1_time is not None: df.at[idx, "Sys1_Learning_Time"] = sys1_time
+        if sys1_practice is not None: df.at[idx, "Sys1_Practice_Score"] = sys1_practice
+        if sys1_post is not None: df.at[idx, "Sys1_Post_Test_Score"] = sys1_post
+        if sys2_time is not None: df.at[idx, "Sys2_Learning_Time"] = sys2_time
+        if sys2_practice is not None: df.at[idx, "Sys2_Practice_Score"] = sys2_practice
+        if sys2_post is not None: df.at[idx, "Sys2_Post_Test_Score"] = sys2_post
+        if survey_answers is not None: df.at[idx, "Questionnaire_Answers"] = str(survey_answers)
     else:
-        df_existing = pd.read_excel(INTERACTION_LOG_FILE)
-        df_combined = pd.concat([df_existing, df_new], ignore_index=True)
-        df_combined.to_excel(INTERACTION_LOG_FILE, index=False)
+        # 3. Create a brand new row if it's a new participant
+        new_row = pd.DataFrame([{
+            "Participant_ID": participant_id,
+            "Timestamp": current_time,
+            "Expertise_Group": expertise_group if expertise_group is not None else "",
+            "Pre_Test_Score": pre_score if pre_score is not None else "",
+            "Sys1_Learning_Time": sys1_time if sys1_time is not None else "",
+            "Sys1_Practice_Score": sys1_practice if sys1_practice is not None else "",
+            "Sys1_Post_Test_Score": sys1_post if sys1_post is not None else "",
+            "Sys2_Learning_Time": sys2_time if sys2_time is not None else "",
+            "Sys2_Practice_Score": sys2_practice if sys2_practice is not None else "",
+            "Sys2_Post_Test_Score": sys2_post if sys2_post is not None else "",
+            "Questionnaire_Answers": str(survey_answers) if survey_answers is not None else ""
+        }]).astype(object)
+        df = pd.concat([df, new_row], ignore_index=True)
+    
+    # 4. Push data straight to your Google Sheet
+    conn.update(data=df)
