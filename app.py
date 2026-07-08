@@ -178,25 +178,27 @@ elif st.session_state.page == "non_adaptive_learning":
     with col2:
         st.write("#### Technical Reference Chat Interface")
         for msg in st.session_state.chat_history:
-            with st.chat_message(msg["role"]): st.write(msg["content"])
-            
-        if user_input := st.chat_input("Ask standard core a question...", key="chat_s1"):
-            st.session_state.chat_history.append({"role": "user", "content": user_input})
-            with st.chat_message("user"): st.write(user_input)
-            
             with st.chat_message("assistant"):
-                try:
-                    response = client.models.generate_content(
-                        model='gemini-2.5-flash',
-                        contents=[m["content"] for m in st.session_state.chat_history],
-                        config=types.GenerateContentConfig(
+            # Retry loop for stability
+                max_retries = 3
+                for attempt in range(max_retries):
+                    try:
+                        response = client.models.generate_content(
+                            model='gemini-1.5-flash', # Switched to 1.5-flash for higher stability
+                            contents=[m["content"] for m in st.session_state.chat_history],
+                            config=types.GenerateContentConfig(
                             system_instruction="You are a static, rigid textbook reference system. Provide cold, formal, encyclopedic summaries only. Never adjust or simplify language for the user."
                         )
                     )
-                    st.write(response.text)
-                    st.session_state.chat_history.append({"role": "assistant", "content": response.text})
-                except (ServerError, APIError):
-                    st.error("⚠️ AI server is temporarily busy. Please resubmit your inquiry in a moment.")
+                        st.write(response.text)
+                        st.session_state.chat_history.append({"role": "assistant", "content": response.text})
+                        break 
+                    except (ServerError, APIError) as e:
+                        if attempt < max_retries - 1:
+                            time.sleep(1)
+                            continue
+                        else:
+                            st.error("⚠️ AI server is busy. Please wait a moment and try your question again.")
 
     st.markdown("<hr>", unsafe_allow_html=True)
     
@@ -287,28 +289,32 @@ elif st.session_state.page == "adaptive_learning":
     with col2:
         st.write(f"#### Adaptive Helper Interfacing ({group})")
         for msg in st.session_state.chat_history:
-            with st.chat_message(msg["role"]): st.write(msg["content"])
+          # ... inside your adaptive_learning stage, under the chat_input:
             
-        if user_input := st.chat_input("Ask adaptive coach a question...", key="chat_s2"):
-            st.session_state.chat_history.append({"role": "user", "content": user_input})
-            with st.chat_message("user"): st.write(user_input)
-            
+            # 1. Define the prompt based on the group
             if group == "Novice":
                 sys_prompt = "You are an adaptive tutor for a Novice. Use clear step-by-step breakdowns and simple real-world structural analogies."
             else:
                 sys_prompt = "You are an advanced researcher helper. Skip basic details. Provide rich mathematical definitions and concise quantitative methodologies."
                 
+            # 2. Now the AI call can use the variable
             with st.chat_message("assistant"):
-                try:
-                    response = client.models.generate_content(
-                        model='gemini-2.5-flash',
-                        contents=[m["content"] for m in st.session_state.chat_history],
-                        config=types.GenerateContentConfig(system_instruction=sys_prompt)
-                    )
-                    st.write(response.text)
-                    st.session_state.chat_history.append({"role": "assistant", "content": response.text})
-                except (ServerError, APIError):
-                    st.error("⚠️ AI server is temporarily busy. Please resubmit your inquiry in a moment.")
+                # Retry loop
+                max_retries = 3
+                for attempt in range(max_retries):
+                    try:
+                        response = client.models.generate_content(
+                            model='gemini-1.5-flash',
+                            contents=[m["content"] for m in st.session_state.chat_history],
+                            config=types.GenerateContentConfig(system_instruction=sys_prompt) # Now sys_prompt exists!
+                        )
+                        # ... rest of your code
+                    except (ServerError, APIError) as e:
+                        if attempt < max_retries - 1:
+                            time.sleep(1)
+                            continue
+                        else:
+                            st.error("⚠️ AI server is busy. Please wait a moment and try your question again.")
 
     st.markdown("<hr>", unsafe_allow_html=True)
     
