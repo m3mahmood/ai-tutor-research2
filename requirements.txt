@@ -4,5 +4,4 @@ openpyxl==3.1.5
 gspread==6.2.1
 google-genai==2.10.0
 google-auth==2.55.2
-google-auth-oauthlib==1.4.0
 cryptography==49.0.0

@@ -40,6 +40,7 @@ except FileNotFoundError:
 # --- GEMINI CLIENT CONNECT ---
 try:
     client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
+    st.write("API Key Loaded:", "GEMINI_API_KEY" in st.secrets)
 except Exception as e:
     st.error("Gemini API Key missing! Check .streamlit/secrets.toml")
 
@@ -198,7 +199,7 @@ elif st.session_state.page == "non_adaptive_learning":
                     for attempt in range(max_retries):
                         try:
                             response = client.models.generate_content(
-                                model='gemini-1.5-flash',
+                                model="gemini-2.5-flash",
                                 contents=[m["content"] for m in st.session_state.chat_history],
                                 config=types.GenerateContentConfig(
                                     system_instruction="You are a static, rigid textbook reference system. Provide cold, formal, encyclopedic summaries only."
@@ -207,12 +208,8 @@ elif st.session_state.page == "non_adaptive_learning":
                             st.write(response.text)
                             st.session_state.chat_history.append({"role": "assistant", "content": response.text})
                             break 
-                        except (ServerError, APIError):
-                            if attempt < max_retries - 1:
-                                time.sleep(1)
-                                continue
-                            else:
-                                st.error("⚠️ AI server is busy. Please try again.")
+                        except Exception as e:
+                            st.exception(e)
                 # We do NOT use st.rerun() here because st.chat_message 
                 # and st.write handle the UI update automatically.
     st.markdown("<hr>", unsafe_allow_html=True)
@@ -279,9 +276,7 @@ elif st.session_state.page == "transition_to_sys2":
         st.session_state.start_time = time.time()
         st.rerun()
 
-# ==========================================
-# STAGE 9: SYSTEM 2 - ADAPTIVE AI
-# ==========================================
+
 # ==========================================
 # STAGE 9: SYSTEM 2 - ADAPTIVE AI
 # ==========================================
@@ -333,19 +328,15 @@ elif st.session_state.page == "adaptive_learning":
                 for attempt in range(max_retries):
                     try:
                         response = client.models.generate_content(
-                            model='gemini-1.5-flash',
+                            model="gemini-2.5-flash",
                             contents=[m["content"] for m in st.session_state.chat_history],
                             config=types.GenerateContentConfig(system_instruction=sys_prompt)
                         )
                         st.session_state.chat_history.append({"role": "assistant", "content": response.text})
                         st.rerun() # Refresh to display the new assistant message
                         break
-                    except (ServerError, APIError):
-                        if attempt < max_retries - 1:
-                            time.sleep(1)
-                            continue
-                        else:
-                            st.error("⚠️ AI server is busy. Please try your question again.")
+                    except Exception as e:
+                        st.exception(e)
 
     st.markdown("<hr>", unsafe_allow_html=True)
     
